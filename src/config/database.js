@@ -31,8 +31,9 @@ const initDatabase = async () => {
             ipAddress TEXT
         )`);
 
+        // Kiểm tra xem cột ipAddress đã tồn tại trong bảng schedules chưa
         const checkColumn = await new Promise((resolve, reject) => {
-            db.get("PRAGMA table_info(schedules)", (err, rows) => {
+            db.all("PRAGMA table_info(schedules)", (err, rows) => {
                 if (err) reject(err);
                 resolve(rows.some(row => row.name === 'ipAddress'));
             });

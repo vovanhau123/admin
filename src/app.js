@@ -32,6 +32,10 @@ initDatabase()
 
     setupWebSocket(wss);
 
+    server.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
+
     return server;
   })
   .catch((error) => {

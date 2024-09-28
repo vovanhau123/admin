@@ -215,7 +215,15 @@
 
         socket.onerror = function(error) {
             console.error('WebSocket error:', error);
-            showToast('Error connecting to server', true);
+            showToast('Error connecting to server. Please check your connection and try again.', true);
+        };
+
+        socket.onclose = function(event) {
+            console.log('WebSocket connection closed:', event);
+            showToast('Connection to server lost. Attempting to reconnect...', true);
+            setTimeout(() => {
+                location.reload();
+            }, 5000);
         };
 
         function createButton(script, isRunning) {
