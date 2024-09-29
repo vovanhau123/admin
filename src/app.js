@@ -11,7 +11,7 @@ const { restoreSchedules } = require("./services/scheduleService");
 const app = express();
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, "../public")));
 
 app.use((req, res, next) => {
   if (req.headers["x-forwarded-proto"] === "https") {
