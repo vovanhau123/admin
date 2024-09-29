@@ -5,7 +5,7 @@ const LOG_INTERVAL = 5000; // 5 giây, đơn vị milliseconds
 
 function setupWebSocket(wss) {
   wss.on("connection", (ws) => {
-    console.log('New WebSocket connection');
+    console.log("New WebSocket connection");
 
     getScriptStatuses().then((statuses) => {
       ws.send(JSON.stringify({ type: "scriptStatus", data: statuses }));
@@ -21,23 +21,41 @@ function setupWebSocket(wss) {
     }, 5000);
 
     const logProcesses = {};
-    const scripts = ['discord', 'index', 'role', 'music-bot'];
+    const scripts = ["discord", "index", "role", "music-bot"];
 
-    scripts.forEach(scriptName => {
-      const logsProcess = spawn("pm2", ["logs", scriptName, "--raw", "--lines", "1000"]);
+    scripts.forEach((scriptName) => {
+      const logsProcess = spawn("pm2", [
+        "logs",
+        scriptName,
+        "--raw",
+        "--lines",
+        "1000",
+      ]);
       logProcesses[scriptName] = logsProcess;
-      
-      let buffer = '';
+
+      let buffer = "";
       let lastSendTime = Date.now();
 
       const sendLogs = () => {
         const now = Date.now();
         if (now - lastSendTime >= LOG_INTERVAL) {
-          if (buffer.trim() !== '') {
-            ws.send(JSON.stringify({ type: "logs", scriptName: scriptName, data: buffer }));
-            buffer = '';
+          ws.send(
+            JSON.stringify({
+              type: "logCountdown",
+              scriptName: scriptName,
+              countdown: LOG_INTERVAL / 1000,
+            })
+          );
+          if (buffer.trim() !== "") {
+            ws.send(
+              JSON.stringify({
+                type: "logs",
+                scriptName: scriptName,
+                data: buffer,
+              })
+            );
+            buffer = "";
           }
-          ws.send(JSON.stringify({ type: "logCountdown", scriptName: scriptName, countdown: LOG_INTERVAL / 1000 }));
           lastSendTime = now;
         }
       };
@@ -57,12 +75,12 @@ function setupWebSocket(wss) {
     });
 
     ws.on("error", (error) => {
-      console.error('WebSocket error:', error);
+      console.error("WebSocket error:", error);
     });
 
     ws.on("close", () => {
       clearInterval(intervalId);
-      Object.values(logProcesses).forEach(process => process.kill());
+      Object.values(logProcesses).forEach((process) => process.kill());
     });
   });
 }
