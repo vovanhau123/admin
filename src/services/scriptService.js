@@ -35,7 +35,12 @@ async function checkScriptStatus(scriptName) {
 async function getScriptStatuses() {
     const statuses = {};
     for (const name of Object.keys(scripts)) {
-        statuses[name] = await checkScriptStatus(name);
+        const isRunning = await checkScriptStatus(name);
+        const scheduledAction = await getScheduledAction(name);
+        statuses[name] = {
+            isRunning,
+            scheduledTime: scheduledAction ? scheduledAction.scheduledTime : null
+        };
     }
     return statuses;
 }
@@ -155,6 +160,16 @@ function getPM2Logs(req, res) {
     });
 }
 
+async function getScheduledAction(scriptName) {
+    return new Promise((resolve, reject) => {
+        db.get('SELECT * FROM schedules WHERE scriptName = ?', [scriptName], (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+        });
+    });
+}
+
+// Đảm bảo export các hàm mới
 module.exports = {
     getScriptStatus,
     getAllScriptStatuses,
@@ -164,6 +179,7 @@ module.exports = {
     getPM2Logs,
     checkScriptStatus,
     getScriptStatuses,
+    getScheduledAction,
     scripts,
     scriptStatusCache
 };

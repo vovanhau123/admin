@@ -16,14 +16,30 @@ function setupWebSocket(wss) {
       }
     }, 5000);
 
-    const logsProcess = spawn("pm2", ["logs", "--raw"]);
-    logsProcess.stdout.on("data", (data) => {
-      ws.send(JSON.stringify({ type: "logs", data: data.toString() }));
+    const logProcesses = {};
+
+    ws.on("message", (message) => {
+      const data = JSON.parse(message);
+      if (data.type === "requestLogs") {
+        if (logProcesses[data.scriptName]) {
+          logProcesses[data.scriptName].kill();
+        }
+        const logsProcess = spawn("pm2", ["logs", data.scriptName, "--raw", "--lines", "100"]);
+        logProcesses[data.scriptName] = logsProcess;
+        logsProcess.stdout.on("data", (data) => {
+          ws.send(JSON.stringify({ type: "logs", scriptName: data.scriptName, data: data.toString() }));
+        });
+      } else if (data.type === "stopLogs") {
+        if (logProcesses[data.scriptName]) {
+          logProcesses[data.scriptName].kill();
+          delete logProcesses[data.scriptName];
+        }
+      }
     });
 
     ws.on("close", () => {
       clearInterval(intervalId);
-      logsProcess.kill();
+      Object.values(logProcesses).forEach(process => process.kill());
     });
   });
 }

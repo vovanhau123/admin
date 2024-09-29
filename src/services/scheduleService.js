@@ -2,7 +2,7 @@ const schedule = require('node-schedule');
 const moment = require('moment-timezone');
 const { db } = require('../config/database');
 const { getClientIp } = require('../utils/getClientIp');
-const { scripts, scriptStatusCache } = require('./scriptService');
+const { scripts, scriptStatusCache, getScriptStatuses } = require('./scriptService');
 const pm2 = require('pm2-promise');
 
 const scheduledJobs = {};
@@ -81,12 +81,16 @@ async function scheduleAction(req, res) {
         
         db.run('INSERT OR REPLACE INTO schedules (scriptName, action, scheduledTime, createdAt, ipAddress) VALUES (?, ?, ?, ?, ?)', 
             [scriptName, action, scheduledTime, new Date().toISOString(), ipAddress],
-            (err) => {
+            async (err) => {
                 if (err) {
                     console.error('Error saving schedule:', err);
                     return res.status(500).json({ error: 'Failed to save schedule' });
                 }
-                res.json({ message: `Scheduled ${action} for ${scriptName} at ${new Date(scheduledTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })} (Vietnam time)` });
+                const updatedStatuses = await getScriptStatuses();
+                res.json({ 
+                    message: `Scheduled ${action} for ${scriptName} at ${new Date(scheduledTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })} (Vietnam time)`,
+                    updatedStatuses
+                });
             }
         );
     } else {
@@ -94,19 +98,23 @@ async function scheduleAction(req, res) {
     }
 }
 
-function cancelScheduledAction(req, res) {
+async function cancelScheduledAction(req, res) {
     const { scriptName } = req.body;
     
     if (scheduledJobs[scriptName]) {
         scheduledJobs[scriptName].cancel();
         delete scheduledJobs[scriptName];
         
-        db.run('DELETE FROM schedules WHERE scriptName = ?', [scriptName], (err) => {
+        db.run('DELETE FROM schedules WHERE scriptName = ?', [scriptName], async (err) => {
             if (err) {
                 console.error('Error deleting schedule:', err);
                 return res.status(500).json({ error: 'Failed to delete schedule' });
             }
-            res.json({ message: `Cancelled scheduled action for ${scriptName}` });
+            const updatedStatuses = await getScriptStatuses();
+            res.json({ 
+                message: `Cancelled scheduled action for ${scriptName}`,
+                updatedStatuses
+            });
         });
     } else {
         res.status(404).json({ error: 'No scheduled action found for this script' });
