@@ -129,6 +129,15 @@ function updateButtons(statuses) {
 const logsContainers = {};
 const countdownIntervals = {};
 
+const logsOrder = ["discord", "role", "index", "music-bot"];
+
+function createLogContainers() {
+  logsOrder.forEach((script) => {
+    const container = createLogContainer(script);
+    logsContainer.appendChild(container);
+  });
+}
+
 function createLogContainer(scriptName) {
   const container = document.createElement("div");
   container.className = "log-container";
@@ -146,17 +155,15 @@ function createLogContainer(scriptName) {
 }
 
 function updateLogs(scriptName, logs) {
-  if (!logsContainers[scriptName]) {
-    const container = createLogContainer(scriptName);
-    logsContainer.appendChild(container);
+  if (logsContainers[scriptName]) {
+    if (logs.trim() === "") {
+      logsContainers[scriptName].content.textContent = "No logs";
+    } else {
+      logsContainers[scriptName].content.textContent = logs;
+    }
+    logsContainers[scriptName].content.scrollTop =
+      logsContainers[scriptName].content.scrollHeight;
   }
-  if (logs.trim() === "") {
-    logsContainers[scriptName].content.textContent = "No logs";
-  } else {
-    logsContainers[scriptName].content.textContent = logs;
-  }
-  logsContainers[scriptName].content.scrollTop =
-    logsContainers[scriptName].content.scrollHeight;
 }
 
 function updateCountdown(scriptName, countdown) {
@@ -387,8 +394,4 @@ function updateCountdown(element, targetTime) {
 }
 
 // Khởi tạo containers cho logs
-scripts.forEach((script) => {
-  const container = createLogContainer(script);
-  logsContainer.appendChild(container);
-  updateLogs(script, ""); // Hiển thị "No logs" ban đầu
-});
+createLogContainers();

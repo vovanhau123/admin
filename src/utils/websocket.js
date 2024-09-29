@@ -2,6 +2,7 @@ const { getScriptStatuses } = require("../services/scriptService");
 const { spawn } = require("child_process");
 
 const LOG_INTERVAL = 5000; // 5 giây, đơn vị milliseconds
+const MAX_LOG_LINES = 10; // Số dòng logs tối đa cho mỗi script
 
 function setupWebSocket(wss) {
   wss.on("connection", (ws) => {
@@ -29,7 +30,7 @@ function setupWebSocket(wss) {
         scriptName,
         "--raw",
         "--lines",
-        "1000",
+        MAX_LOG_LINES.toString(),
       ]);
       logProcesses[scriptName] = logsProcess;
 
@@ -47,11 +48,15 @@ function setupWebSocket(wss) {
             })
           );
           if (buffer.trim() !== "") {
+            const logLines = buffer
+              .split("\n")
+              .slice(-MAX_LOG_LINES)
+              .join("\n");
             ws.send(
               JSON.stringify({
                 type: "logs",
                 scriptName: scriptName,
-                data: buffer,
+                data: logLines,
               })
             );
             buffer = "";
