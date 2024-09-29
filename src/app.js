@@ -5,7 +5,7 @@ const { initDatabase } = require("./config/database");
 const scriptRoutes = require("./routes/scriptRoutes");
 const scheduleRoutes = require("./routes/scheduleRoutes");
 const { restoreSchedules } = require("./services/scheduleService");
-const { getClientInfo, sendToDiscord } = require("./utils/getClientIp");
+const { getClientInfo, clearNotifiedIP } = require("./utils/getClientIp");
 
 function createServer() {
   const app = express();
@@ -21,7 +21,7 @@ function createServer() {
     try {
       const clientInfo = await getClientInfo(req);
       console.log('Client info:', clientInfo);
-      await sendToDiscord(clientInfo);
+      clearNotifiedIP(clientInfo.ip);
     } catch (error) {
       console.error('Error getting client info or sending to Discord:', error);
     }

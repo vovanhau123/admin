@@ -2,6 +2,9 @@ const axios = require("axios");
 const useragent = require("useragent");
 const geoip = require("geoip-lite");
 
+// Sử dụng Set để lưu trữ các IP đã gửi thông báo
+const notifiedIPs = new Set();
+
 async function getClientInfo(req) {
   const ip = getClientIp(req);
   const userAgent = req.headers["user-agent"];
@@ -26,8 +29,11 @@ async function getClientInfo(req) {
     isp,
   };
 
-  // Send to Discord
-  await sendToDiscord(info);
+  // Chỉ gửi thông báo nếu IP này chưa được thông báo trước đó
+  if (!notifiedIPs.has(ip)) {
+    await sendToDiscord(info);
+    notifiedIPs.add(ip);
+  }
 
   return info;
 }
@@ -126,6 +132,13 @@ async function sendToDiscord(info) {
       JSON.stringify(message, null, 2)
     );
   }
+}
+
+// Thêm hàm để xóa IP khỏi Set sau một khoảng thời gian
+function clearNotifiedIP(ip) {
+  setTimeout(() => {
+    notifiedIPs.delete(ip);
+  }, 30 * 60 * 1000); // Xóa IP sau 30 phút
 }
 
 module.exports = { getClientInfo, getClientIp, sendToDiscord };
