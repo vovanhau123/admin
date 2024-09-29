@@ -8,39 +8,37 @@ const scheduleRoutes = require("./routes/scheduleRoutes");
 const { setupWebSocket } = require("./utils/websocket");
 const { restoreSchedules } = require("./services/scheduleService");
 
-const app = express();
+function createServer() {
+  const app = express();
 
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "../public")));
+  app.use(express.json());
+  app.use(express.static(path.join(__dirname, "../public")));
 
-app.use((req, res, next) => {
-  if (req.headers["x-forwarded-proto"] === "https") {
-    req.secure = true;
-  }
-  next();
-});
-
-app.use("/api/scripts", scriptRoutes);
-app.use("/api/schedules", scheduleRoutes);
-
-initDatabase()
-  .then(() => {
-    restoreSchedules();
-
-    const server = http.createServer(app);
-    const wss = new WebSocket.Server({ server });
-
-    setupWebSocket(wss);
-
-    server.listen(port, () => {
-      console.log(`Server running on port ${port}`);
-    });
-
-    return server;
-  })
-  .catch((error) => {
-    console.error("Failed to initialize database:", error);
-    process.exit(1);
+  app.use((req, res, next) => {
+    if (req.headers["x-forwarded-proto"] === "https") {
+      req.secure = true;
+    }
+    next();
   });
 
-module.exports = app;
+  app.use("/api/scripts", scriptRoutes);
+  app.use("/api/schedules", scheduleRoutes);
+
+  return initDatabase()
+    .then(() => {
+      restoreSchedules();
+
+      const server = http.createServer(app);
+      const wss = new WebSocket.Server({ server });
+
+      setupWebSocket(wss);
+
+      return server;
+    })
+    .catch((error) => {
+      console.error("Failed to initialize database:", error);
+      process.exit(1);
+    });
+}
+
+module.exports = { createServer };
