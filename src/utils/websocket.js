@@ -3,7 +3,7 @@ const { spawn } = require("child_process");
 
 function setupWebSocket(wss) {
   wss.on("connection", (ws) => {
-    console.log("New WebSocket connection");
+    console.log('New WebSocket connection');
 
     getScriptStatuses().then((statuses) => {
       ws.send(JSON.stringify({ type: "scriptStatus", data: statuses }));
@@ -21,33 +21,21 @@ function setupWebSocket(wss) {
     const logProcesses = {};
 
     // Start log processes for all scripts
-    Object.keys(getScriptStatuses()).forEach((scriptName) => {
-      const logsProcess = spawn("pm2", [
-        "logs",
-        scriptName,
-        "--raw",
-        "--lines",
-        "100",
-      ]);
+    Object.keys(getScriptStatuses()).forEach(scriptName => {
+      const logsProcess = spawn("pm2", ["logs", scriptName, "--raw", "--lines", "100"]);
       logProcesses[scriptName] = logsProcess;
       logsProcess.stdout.on("data", (data) => {
-        ws.send(
-          JSON.stringify({
-            type: "logs",
-            scriptName: scriptName,
-            data: data.toString(),
-          })
-        );
+        ws.send(JSON.stringify({ type: "logs", scriptName: scriptName, data: data.toString() }));
       });
     });
 
     ws.on("error", (error) => {
-      console.error("WebSocket error:", error);
+      console.error('WebSocket error:', error);
     });
 
     ws.on("close", () => {
       clearInterval(intervalId);
-      Object.values(logProcesses).forEach((process) => process.kill());
+      Object.values(logProcesses).forEach(process => process.kill());
     });
   });
 }

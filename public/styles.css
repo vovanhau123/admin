@@ -18,8 +18,7 @@ body {
     width: 100%;
 }
 
-h1,
-h2 {
+h1, h2 {
     color: #333;
     text-align: center;
     margin-bottom: 30px;
@@ -67,25 +66,10 @@ h2 {
     filter: brightness(110%);
 }
 
-.script-card button.start {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.script-card button.restart {
-    background-color: #2196F3;
-    color: white;
-}
-
-.script-card button.stop {
-    background-color: #f44336;
-    color: white;
-}
-
-.script-card button.schedule {
-    background-color: #9c27b0;
-    color: white;
-}
+.script-card button.start { background-color: #4CAF50; color: white; }
+.script-card button.restart { background-color: #2196F3; color: white; }
+.script-card button.stop { background-color: #f44336; color: white; }
+.script-card button.schedule { background-color: #9c27b0; color: white; }
 
 .status {
     font-weight: bold;
@@ -104,7 +88,7 @@ h2 {
     background-color: #f8f8f8;
     border-radius: 8px;
     padding: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .log-container h3 {
@@ -139,26 +123,13 @@ h2 {
 }
 
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-button .spinner {
-    display: none;
-}
-
-button.loading .spinner {
-    display: inline-block;
-}
-
-button.loading span {
-    display: none;
-}
+button .spinner { display: none; }
+button.loading .spinner { display: inline-block; }
+button.loading span { display: none; }
 
 .modal {
     display: none;
@@ -169,7 +140,7 @@ button.loading span {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(0,0,0,0.4);
 }
 
 .modal-content {
@@ -179,7 +150,7 @@ button.loading span {
     border: 1px solid #888;
     width: 350px;
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .modal-content h2 {

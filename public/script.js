@@ -96,16 +96,6 @@ function createButton(script, status) {
         scheduleRestartButton.onclick = () => openScheduleModal(script, 'restart');
     }
 
-    const scheduleStopButton = document.createElement('button');
-    scheduleStopButton.className = 'schedule';
-    scheduleStopButton.textContent = 'Schedule Stop';
-    scheduleStopButton.onclick = () => openScheduleModal(script, 'stop');
-
-    const viewLogsButton = document.createElement('button');
-    viewLogsButton.className = 'view-logs';
-    viewLogsButton.textContent = 'View Logs';
-    viewLogsButton.onclick = () => viewLogs(script);
-
     const statusDiv = document.createElement('div');
     statusDiv.className = 'status';
     statusDiv.textContent = script;
@@ -114,8 +104,6 @@ function createButton(script, status) {
     card.appendChild(restartButton);
     card.appendChild(stopButton);
     card.appendChild(scheduleRestartButton);
-    card.appendChild(scheduleStopButton);
-    card.appendChild(viewLogsButton);
     card.appendChild(statusDiv);
     return card;
 }
@@ -346,3 +334,9 @@ function updateCountdown(element, targetTime) {
     }
     element.timerInterval = setInterval(updateTimer, 1000);
 }
+
+// Khởi tạo containers cho logs
+scripts.forEach(script => {
+    const container = createLogContainer(script);
+    logsContainer.appendChild(container);
+});
