@@ -1,4 +1,4 @@
-const { getScriptStatuses } = require("../services/scriptService");
+const { getScriptStatuses, getScriptList } = require("../services/scriptService");
 const { spawn } = require("child_process");
 
 const LOG_INTERVAL = 5000; // 5 giây, đơn vị milliseconds
@@ -6,7 +6,7 @@ const MAX_LOG_LINES = 10; // Số dòng logs tối đa cho mỗi script
 
 function setupWebSocket(wss) {
   wss.on("connection", (ws) => {
-    console.log("New WebSocket connection");
+    console.log('New WebSocket connection');
 
     getScriptStatuses().then((statuses) => {
       ws.send(JSON.stringify({ type: "scriptStatus", data: statuses }));
@@ -22,44 +22,23 @@ function setupWebSocket(wss) {
     }, 5000);
 
     const logProcesses = {};
-    const scripts = ["discord", "index", "role", "music-bot"];
+    const scripts = getScriptList();
 
-    scripts.forEach((scriptName) => {
-      const logsProcess = spawn("pm2", [
-        "logs",
-        scriptName,
-        "--raw",
-        "--lines",
-        MAX_LOG_LINES.toString(),
-      ]);
+    scripts.forEach(scriptName => {
+      const logsProcess = spawn("pm2", ["logs", scriptName, "--raw", "--lines", MAX_LOG_LINES.toString()]);
       logProcesses[scriptName] = logsProcess;
-
-      let buffer = "";
+      
+      let buffer = '';
       let lastSendTime = Date.now();
 
       const sendLogs = () => {
         const now = Date.now();
         if (now - lastSendTime >= LOG_INTERVAL) {
-          ws.send(
-            JSON.stringify({
-              type: "logCountdown",
-              scriptName: scriptName,
-              countdown: LOG_INTERVAL / 1000,
-            })
-          );
-          if (buffer.trim() !== "") {
-            const logLines = buffer
-              .split("\n")
-              .slice(-MAX_LOG_LINES)
-              .join("\n");
-            ws.send(
-              JSON.stringify({
-                type: "logs",
-                scriptName: scriptName,
-                data: logLines,
-              })
-            );
-            buffer = "";
+          ws.send(JSON.stringify({ type: "logCountdown", scriptName: scriptName, countdown: LOG_INTERVAL / 1000 }));
+          if (buffer.trim() !== '') {
+            const logLines = buffer.split('\n').slice(-MAX_LOG_LINES).join('\n');
+            ws.send(JSON.stringify({ type: "logs", scriptName: scriptName, data: logLines }));
+            buffer = '';
           }
           lastSendTime = now;
         }
@@ -80,12 +59,12 @@ function setupWebSocket(wss) {
     });
 
     ws.on("error", (error) => {
-      console.error("WebSocket error:", error);
+      console.error('WebSocket error:', error);
     });
 
     ws.on("close", () => {
       clearInterval(intervalId);
-      Object.values(logProcesses).forEach((process) => process.kill());
+      Object.values(logProcesses).forEach(process => process.kill());
     });
   });
 }

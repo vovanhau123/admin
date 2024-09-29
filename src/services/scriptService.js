@@ -8,10 +8,12 @@ const NodeCache = require('node-cache');
 const scriptStatusCache = new NodeCache({ stdTTL: 2, checkperiod: 5 });
 
 const scripts = {
-    'discord': '/home/vovanhau/disscord/index.js',
-    'index': '/home/vovanhau/index.js',
-    'role': '/home/vovanhau/TICK_cow/role.js',
-    'music-bot': '/home/vovanhau/bot/Discord-MusicBot-5/index.js'
+    'role': '/home/vovanhau/disscord/index.js',
+    // 'index': '/home/vovanhau/index.js',
+    'ticket': '/home/vovanhau/TICK_cow/role.js',
+    'toxic': '/home/vovanhau/toxic/index.js',
+    // 'music-bot': '/home/vovanhau/bot/Discord-MusicBot-5/index.js'
+    // Thêm scripts mới ở đây
 };
 
 async function checkScriptStatus(scriptName) {
@@ -181,5 +183,6 @@ module.exports = {
     getScriptStatuses,
     getScheduledAction,
     scripts,
-    scriptStatusCache
+    scriptStatusCache,
+    getScriptList: () => Object.keys(scripts)
 };
