@@ -183,7 +183,8 @@ button.loading span { display: none; }
 
 .countdown {
     font-size: 12px;
-    margin-top: 5px;
+    margin-bottom: 5px;
+    color: #666;
 }
 
 .schedule.active {

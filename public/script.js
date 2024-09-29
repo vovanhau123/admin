@@ -33,6 +33,8 @@ socket.onmessage = function(event) {
         updateButtons(data.data);
     } else if (data.type === 'logs') {
         updateLogs(data.scriptName, data.data);
+    } else if (data.type === 'logCountdown') {
+        updateCountdown(data.scriptName, data.countdown);
     }
 };
 
@@ -116,26 +118,52 @@ function updateButtons(statuses) {
     });
 }
 
-function updateLogs(scriptName, logs) {
-    if (!logsContainers[scriptName]) {
-        const container = createLogContainer(scriptName);
-        logsContainer.appendChild(container);
-    }
-    logsContainers[scriptName].textContent += logs;
-    logsContainers[scriptName].scrollTop = logsContainers[scriptName].scrollHeight;
-}
-
 const logsContainers = {};
+const countdownIntervals = {};
 
 function createLogContainer(scriptName) {
     const container = document.createElement('div');
     container.className = 'log-container';
     container.innerHTML = `
         <h3>${scriptName} Logs</h3>
+        <div class="countdown">Next update in: <span>5</span>s</div>
         <pre class="logs-content"></pre>
     `;
-    logsContainers[scriptName] = container.querySelector('.logs-content');
+    logsContainers[scriptName] = {
+        content: container.querySelector('.logs-content'),
+        countdown: container.querySelector('.countdown span')
+    };
     return container;
+}
+
+function updateLogs(scriptName, logs) {
+    if (!logsContainers[scriptName]) {
+        const container = createLogContainer(scriptName);
+        logsContainer.appendChild(container);
+    }
+    if (logs.trim() === '') {
+        logsContainers[scriptName].content.textContent = 'No logs';
+    } else {
+        logsContainers[scriptName].content.textContent = logs;
+    }
+    logsContainers[scriptName].content.scrollTop = logsContainers[scriptName].content.scrollHeight;
+}
+
+function updateCountdown(scriptName, countdown) {
+    if (countdownIntervals[scriptName]) {
+        clearInterval(countdownIntervals[scriptName]);
+    }
+    
+    const countdownElement = logsContainers[scriptName].countdown;
+    countdownElement.textContent = countdown;
+
+    countdownIntervals[scriptName] = setInterval(() => {
+        countdown--;
+        countdownElement.textContent = countdown;
+        if (countdown <= 0) {
+            clearInterval(countdownIntervals[scriptName]);
+        }
+    }, 1000);
 }
 
 function showToast(message, isError = false) {
@@ -339,4 +367,5 @@ function updateCountdown(element, targetTime) {
 scripts.forEach(script => {
     const container = createLogContainer(script);
     logsContainer.appendChild(container);
+    updateLogs(script, ''); // Hiển thị "No logs" ban đầu
 });

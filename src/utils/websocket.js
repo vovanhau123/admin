@@ -1,6 +1,8 @@
 const { getScriptStatuses } = require("../services/scriptService");
 const { spawn } = require("child_process");
 
+const LOG_INTERVAL = 5000; // 5 giây, đơn vị milliseconds
+
 function setupWebSocket(wss) {
   wss.on("connection", (ws) => {
     console.log('New WebSocket connection');
@@ -19,14 +21,39 @@ function setupWebSocket(wss) {
     }, 5000);
 
     const logProcesses = {};
+    const scripts = ['discord', 'index', 'role', 'music-bot'];
 
-    // Start log processes for all scripts
-    Object.keys(getScriptStatuses()).forEach(scriptName => {
-      const logsProcess = spawn("pm2", ["logs", scriptName, "--raw", "--lines", "100"]);
+    scripts.forEach(scriptName => {
+      const logsProcess = spawn("pm2", ["logs", scriptName, "--raw", "--lines", "1000"]);
       logProcesses[scriptName] = logsProcess;
+      
+      let buffer = '';
+      let lastSendTime = Date.now();
+
+      const sendLogs = () => {
+        const now = Date.now();
+        if (now - lastSendTime >= LOG_INTERVAL) {
+          if (buffer.trim() !== '') {
+            ws.send(JSON.stringify({ type: "logs", scriptName: scriptName, data: buffer }));
+            buffer = '';
+          }
+          ws.send(JSON.stringify({ type: "logCountdown", scriptName: scriptName, countdown: LOG_INTERVAL / 1000 }));
+          lastSendTime = now;
+        }
+      };
+
       logsProcess.stdout.on("data", (data) => {
-        ws.send(JSON.stringify({ type: "logs", scriptName: scriptName, data: data.toString() }));
+        buffer += data.toString();
+        sendLogs();
       });
+
+      logsProcess.stderr.on("data", (data) => {
+        buffer += data.toString();
+        sendLogs();
+      });
+
+      // Đảm bảo gửi logs và cập nhật đếm ngược ngay cả khi không có logs mới
+      setInterval(sendLogs, 1000);
     });
 
     ws.on("error", (error) => {
