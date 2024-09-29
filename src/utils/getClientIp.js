@@ -86,30 +86,29 @@ function getClientIp(req) {
 }
 
 async function sendToDiscord(info) {
-  const webhookUrl = `https://discord.com/api/webhooks/1290035353553469531/MLva8kdBM-RRbYD8ObR8ina05af3G3Gu_f7Hxpm4aSNeIWfLE9k6R3shK127ksB0N01I`;
+  const webhookUrl = `https://discord.com/api/webhooks/1290035353553469531/MLva8kdBM8kdBM8kdBM8kdBM8kdBM8kdBM8kdBM8kdBM8kdBM`;
   const message = {
-    content: "New visitor to the web app!",
-    embeds: [
-      {
-        title: "Visitor Information",
-        fields: [
-          { name: "IP", value: info.ip, inline: true },
-          { name: "Device", value: info.device, inline: true },
-          { name: "Browser", value: info.browser, inline: true },
-          { name: "OS", value: info.os, inline: true },
-          { name: "Location", value: info.location, inline: true },
-          { name: "ISP", value: info.isp, inline: true },
-        ],
-        color: 5814783, // A nice blue color
-      },
-    ],
+    content: 'New visitor to the web app!',
+    embeds: [{
+      title: 'Visitor Information',
+      fields: [
+        { name: 'IP', value: info.ip, inline: true },
+        { name: 'Device', value: info.device, inline: true },
+        { name: 'Browser', value: info.browser, inline: true },
+        { name: 'OS', value: info.os, inline: true },
+        { name: 'Location', value: info.location, inline: true },
+        { name: 'ISP', value: info.isp, inline: true },
+      ],
+      color: 5814783  // A nice blue color
+    }]
   };
 
   try {
-    await axios.post(webhookUrl, message);
+    const response = await axios.post(webhookUrl, message);
+    console.log('Message sent to Discord:', response.status, response.statusText);
   } catch (error) {
-    console.error("Error sending message to Discord:", error);
+    console.error('Error sending message to Discord:', error.response ? error.response.data : error.message);
   }
 }
 
-module.exports = { getClientInfo, getClientIp };
+module.exports = { getClientInfo, getClientIp, sendToDiscord };
