@@ -86,7 +86,7 @@ function getClientIp(req) {
 }
 
 async function sendToDiscord(info) {
-  const webhookUrl = `https://discord.com/api/webhooks/1290035353553469531/MLva8kdBM8kdBM8kdBM8kdBM8kdBM8kdBM8kdBM8kdBM8kdBM`;
+  const webhookUrl = ``;
   const message = {
     content: 'New visitor to the web app!',
     embeds: [{
