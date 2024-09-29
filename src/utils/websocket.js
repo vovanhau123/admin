@@ -20,35 +20,25 @@ function setupWebSocket(wss) {
 
     const logProcesses = {};
 
-    ws.on("message", (message) => {
-      const data = JSON.parse(message);
-      if (data.type === "requestLogs") {
-        if (logProcesses[data.scriptName]) {
-          logProcesses[data.scriptName].kill();
-        }
-        const logsProcess = spawn("pm2", [
-          "logs",
-          data.scriptName,
-          "--raw",
-          "--lines",
-          "100",
-        ]);
-        logProcesses[data.scriptName] = logsProcess;
-        logsProcess.stdout.on("data", (data) => {
-          ws.send(
-            JSON.stringify({
-              type: "logs",
-              scriptName: data.scriptName,
-              data: data.toString(),
-            })
-          );
-        });
-      } else if (data.type === "stopLogs") {
-        if (logProcesses[data.scriptName]) {
-          logProcesses[data.scriptName].kill();
-          delete logProcesses[data.scriptName];
-        }
-      }
+    // Start log processes for all scripts
+    Object.keys(getScriptStatuses()).forEach((scriptName) => {
+      const logsProcess = spawn("pm2", [
+        "logs",
+        scriptName,
+        "--raw",
+        "--lines",
+        "100",
+      ]);
+      logProcesses[scriptName] = logsProcess;
+      logsProcess.stdout.on("data", (data) => {
+        ws.send(
+          JSON.stringify({
+            type: "logs",
+            scriptName: scriptName,
+            data: data.toString(),
+          })
+        );
+      });
     });
 
     ws.on("error", (error) => {

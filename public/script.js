@@ -129,10 +129,25 @@ function updateButtons(statuses) {
 }
 
 function updateLogs(scriptName, logs) {
-    if (scriptName === currentLogScript) {
-        logsContent.textContent += logs;
-        logsContent.scrollTop = logsContent.scrollHeight;
+    if (!logsContainers[scriptName]) {
+        const container = createLogContainer(scriptName);
+        logsContainer.appendChild(container);
     }
+    logsContainers[scriptName].textContent += logs;
+    logsContainers[scriptName].scrollTop = logsContainers[scriptName].scrollHeight;
+}
+
+const logsContainers = {};
+
+function createLogContainer(scriptName) {
+    const container = document.createElement('div');
+    container.className = 'log-container';
+    container.innerHTML = `
+        <h3>${scriptName} Logs</h3>
+        <pre class="logs-content"></pre>
+    `;
+    logsContainers[scriptName] = container.querySelector('.logs-content');
+    return container;
 }
 
 function showToast(message, isError = false) {
@@ -330,33 +345,4 @@ function updateCountdown(element, targetTime) {
         clearInterval(element.timerInterval);
     }
     element.timerInterval = setInterval(updateTimer, 1000);
-}
-
-
-function viewLogs(scriptName) {
-    if (currentLogScript === scriptName) {
-        socket.send(JSON.stringify({ type: 'stopLogs', scriptName }));
-        currentLogScript = null;
-        logsContent.innerHTML = '';
-        updateLogsTabs();
-    } else {
-        if (currentLogScript) {
-            socket.send(JSON.stringify({ type: 'stopLogs', scriptName: currentLogScript }));
-        }
-        currentLogScript = scriptName;
-        logsContent.innerHTML = '';
-        socket.send(JSON.stringify({ type: 'requestLogs', scriptName }));
-        updateLogsTabs();
-    }
-}
-
-function updateLogsTabs() {
-    logsTabs.innerHTML = '';
-    scripts.forEach(script => {
-        const tab = document.createElement('button');
-        tab.textContent = script;
-        tab.className = script === currentLogScript ? 'active' : '';
-        tab.onclick = () => viewLogs(script);
-        logsTabs.appendChild(tab);
-    });
 }
